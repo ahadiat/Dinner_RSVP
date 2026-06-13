@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>RSVP Dinner</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 500px;
+            margin: 40px auto;
+            padding: 20px;
+        }
+
+        h2 {
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            cursor: pointer;
+        }
+
+        #status {
+            margin-top: 15px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>RSVP Dinner</h2>
+
+    <div class="form-group">
+        <label>Nama</label>
+        <input type="text" id="nama" required>
+    </div>
+
+    <div class="form-group">
+        <label>Kategori</label>
+        <select id="kategori">
+            <option value="Pelajar">Pelajar</option>
+            <option value="Alumni">Alumni</option>
+            <option value="Pensyarah">Pensyarah</option>
+            <option value="Staff">Staff</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label>File Upload</label>
+        <input type="file" id="fileUrl">
+    </div>
+
+    <button onclick="submitRSVP()">
+        Hantar RSVP
+    </button>
+
+    <div id="status"></div>
+
+    <script>
+        const WEBAPP_URL =
+            "https://script.google.com/macros/s/AKfycbxSEGqszivSLnZmgGd8LP-JHASIKJPw_8mmLQyPA_c79_cAmXKdvklJ0sXrmJRUDxG9bA/exec";
+
+        async function submitRSVP() {
+
+            const nama =
+    document.getElementById("nama").value.trim();
+
+const kategori =
+    document.getElementById("kategori").value;
+
+const fileInput =
+    document.getElementById("fileUrl");
+
+            const status =
+                document.getElementById("status");
+
+            if (!nama) {
+                alert("Sila masukkan nama.");
+                return;
+            }
+
+            status.innerHTML = "Menghantar...";
+
+            let fileContent = "";
+            let fileName = "";
+            let mimeType = "";
+
+            if (fileInput.files.length > 0) {
+
+                const file =
+                    fileInput.files[0];
+
+                fileName = file.name;
+                mimeType = file.type;
+
+                const buffer =
+                    await file.arrayBuffer();
+
+                const bytes =
+                    new Uint8Array(buffer);
+
+                let binary = "";
+
+                bytes.forEach(byte => {
+                    binary += String.fromCharCode(byte);
+                });
+
+                fileContent = btoa(binary);
+            }
+
+            const payload = {
+                nama,
+                kategori,
+                fileName,
+                mimeType,
+                fileContent
+            };
+
+            try {
+
+                const response =
+                    await fetch(WEBAPP_URL, {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify(payload)
+                    });
+
+                const result =
+                    await response.json();
+
+                if (result.success) {
+
+                    status.innerHTML =
+                        "✅ RSVP berjaya dihantar.";
+
+                        document.getElementById("nama").value = "";
+document.getElementById("kategori").selectedIndex = 0;
+document.getElementById("fileUrl").value = "";
+
+                } else {
+
+                    status.innerHTML =
+                        "❌ " + result.message;
+                }
+
+            } catch (error) {
+
+                status.innerHTML =
+                    "❌ Ralat: " + error.message;
+            }
+        }
+    </script>
+
+</body>
+</html>
