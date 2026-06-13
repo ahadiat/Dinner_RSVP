@@ -1,176 +1,218 @@
 <!DOCTYPE html>
-<html>
+<html lang="ms">
 <head>
-    <meta charset="UTF-8">
-    <title>RSVP Dinner</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            max-width: 500px;
-            margin: 40px auto;
-            padding: 20px;
-        }
+<title>Bayaran Dinner FEPDT</title>
 
-        h2 {
-            text-align: center;
-        }
+<style>
 
-        .form-group {
-            margin-bottom: 15px;
-        }
+body{
+    font-family:Arial;
+    background:#f4f4f4;
+    padding:30px;
+}
 
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-        }
+.container{
+    max-width:600px;
+    margin:auto;
+    background:white;
+    padding:25px;
+    border-radius:12px;
+}
 
-        input,
-        select {
-            width: 100%;
-            padding: 10px;
-            box-sizing: border-box;
-        }
+input,
+select{
+    width:100%;
+    padding:12px;
+    margin-top:8px;
+    margin-bottom:15px;
+}
 
-        button {
-            width: 100%;
-            padding: 12px;
-            cursor: pointer;
-        }
+button{
+    width:100%;
+    padding:14px;
+    background:#0066ff;
+    color:white;
+    border:none;
+    cursor:pointer;
+}
 
-        #status {
-            margin-top: 15px;
-            text-align: center;
-        }
-    </style>
+#status{
+    margin-top:20px;
+}
+
+</style>
 </head>
 <body>
 
-    <h2>RSVP Dinner</h2>
+<div class="container">
 
-    <div class="form-group">
-        <label>Nama</label>
-        <input type="text" id="nama" required>
-    </div>
+<h2>Bayaran Dinner FEPDT</h2>
 
-    <div class="form-group">
-        <label>Kategori</label>
-        <select id="kategori">
-            <option value="Pelajar">Pelajar</option>
-            <option value="Alumni">Alumni</option>
-            <option value="Pensyarah">Pensyarah</option>
-            <option value="Staff">Staff</option>
-        </select>
-    </div>
+<form id="paymentForm">
 
-    <div class="form-group">
-        <label>File Upload</label>
-        <input type="file" id="fileUrl">
-    </div>
+<label>Nama</label>
+<input
+type="text"
+id="nama"
+required>
 
-    <button onclick="submitRSVP()">
-        Hantar RSVP
-    </button>
+<label>Kategori</label>
+<select id="kategori">
 
-    <div id="status"></div>
+<option>Pelajar</option>
+<option>Alumni</option>
+<option>Pensyarah</option>
+<option>Lain-lain</option>
 
-    <script>
-        const WEBAPP_URL =
-            "https://script.google.com/macros/s/AKfycbxSEGqszivSLnZmgGd8LP-JHASIKJPw_8mmLQyPA_c79_cAmXKdvklJ0sXrmJRUDxG9bA/exec";
+</select>
 
-        async function submitRSVP() {
+<label>No Matrik</label>
+<input
+type="text"
+id="matrik">
 
-            const nama =
-    document.getElementById("nama").value.trim();
+<label>Upload Resit</label>
+<input
+type="file"
+id="receipt"
+required>
 
-const kategori =
-    document.getElementById("kategori").value;
+<button type="submit">
+Hantar
+</button>
 
-const fileInput =
-    document.getElementById("fileUrl");
+</form>
 
-            const status =
-                document.getElementById("status");
+<div id="status"></div>
 
-            if (!nama) {
-                alert("Sila masukkan nama.");
-                return;
-            }
+</div>
 
-            status.innerHTML = "Menghantar...";
+<script>
 
-            let fileContent = "";
-            let fileName = "";
-            let mimeType = "";
+const API_URL =
+"https://script.google.com/macros/s/AKfycbwwTFk3dg3hWJ62xz3dwKlrMDO__b8P0wXMBQg4TFhlwa3_Md6iFpWPw5SQclvM-l-jdw/exec";
 
-            if (fileInput.files.length > 0) {
+document
+.getElementById("paymentForm")
+.addEventListener(
+"submit",
+async function(e){
 
-                const file =
-                    fileInput.files[0];
+e.preventDefault();
 
-                fileName = file.name;
-                mimeType = file.type;
+const file =
+document
+.getElementById("receipt")
+.files[0];
 
-                const buffer =
-                    await file.arrayBuffer();
+if(!file){
+alert("Sila upload resit");
+return;
+}
 
-                const bytes =
-                    new Uint8Array(buffer);
+const reader =
+new FileReader();
 
-                let binary = "";
+reader.onload = async function(){
 
-                bytes.forEach(byte => {
-                    binary += String.fromCharCode(byte);
-                });
+const base64 =
+reader.result
+.split(",")[1];
 
-                fileContent = btoa(binary);
-            }
+const payload = {
 
-            const payload = {
-                nama,
-                kategori,
-                fileName,
-                mimeType,
-                fileContent
-            };
+nama:
+document
+.getElementById("nama")
+.value,
 
-            try {
+kategori:
+document
+.getElementById("kategori")
+.value,
 
-                const response =
-                    await fetch(WEBAPP_URL, {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json"
-                        },
-                        body: JSON.stringify(payload)
-                    });
+matrik:
+document
+.getElementById("matrik")
+.value,
 
-                const result =
-                    await response.json();
+fileName:
+file.name,
 
-                if (result.success) {
+mimeType:
+file.type,
 
-                    status.innerHTML =
-                        "✅ RSVP berjaya dihantar.";
+file:
+base64
 
-                        document.getElementById("nama").value = "";
-document.getElementById("kategori").selectedIndex = 0;
-document.getElementById("fileUrl").value = "";
+};
 
-                } else {
+document
+.getElementById("status")
+.innerHTML =
+"Sedang memuat naik...";
 
-                    status.innerHTML =
-                        "❌ " + result.message;
-                }
+try{
 
-            } catch (error) {
+const response =
+await fetch(API_URL,{
 
-                status.innerHTML =
-                    "❌ Ralat: " + error.message;
-            }
-        }
-    </script>
+method:"POST",
+
+headers:{
+"Content-Type":
+"application/json"
+},
+
+body:
+JSON.stringify(payload)
+
+});
+
+const result =
+await response.json();
+
+if(result.success){
+
+document
+.getElementById("status")
+.innerHTML =
+`
+✅ Bayaran berjaya direkodkan.
+`;
+
+document
+.getElementById("paymentForm")
+.reset();
+
+}else{
+
+document
+.getElementById("status")
+.innerHTML =
+result.error;
+
+}
+
+}catch(err){
+
+document
+.getElementById("status")
+.innerHTML =
+err;
+
+}
+
+};
+
+reader.readAsDataURL(file);
+
+});
+
+</script>
 
 </body>
 </html>
